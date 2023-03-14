@@ -9,7 +9,17 @@ const options = {
   onClose(selectedDates) {
     console.log(selectedDates[0]);
   },
+  onChange() {
+    if (
+      options.defaultDate.getTime() >
+      Number(selectedTime.formatDate(...selectedTime.selectedDates, 'U')) * 1000
+    ) {
+      return alert('Please choose a date in the future');
+    }
+    refs.startBtn.disabled = false;
+  },
 };
+
 function convertMs(ms) {
   // Number of milliseconds per unit of time
   const second = 1000;
@@ -36,20 +46,32 @@ const refs = {
   hours: document.querySelector('[data-hours]'),
   days: document.querySelector('[data-days]'),
 };
+refs.startBtn.disabled = true;
 const selectedTime = flatpickr(refs.input, options);
+let timerId = null;
 
 refs.startBtn.addEventListener('click', onStartClick);
 function onStartClick() {
   const selectedUnixDate =
     Number(selectedTime.formatDate(...selectedTime.selectedDates, 'U')) * 1000;
-  const currentUnixDate = new Date().getTime();
-  const timeDif = selectedUnixDate - currentUnixDate;
-  updTimerValues(timeDif);
-}
+  let isTimerActivatable = true;
 
+  if (isTimerActivatable && getCurrentUnixDate() < selectedUnixDate) {
+    timerId = setInterval(() => {
+      let timeDif = selectedUnixDate - getCurrentUnixDate();
+      updTimerValues(timeDif);
+      isTimerActivatable = false;
+    }, 1000);
+  }
+  //   console.log(options.defaultDate.getTime(), selectedUnixDate);
+}
 function updTimerValues(timeDif) {
   refs.seconds.textContent = convertMs(timeDif).seconds;
   refs.minutes.textContent = convertMs(timeDif).minutes;
   refs.hours.textContent = convertMs(timeDif).hours;
   refs.days.textContent = convertMs(timeDif).days;
+}
+function getCurrentUnixDate() {
+  const currentUnixDate = new Date().getTime();
+  return currentUnixDate;
 }
