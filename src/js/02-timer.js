@@ -49,6 +49,7 @@ const refs = {
 refs.startBtn.disabled = true;
 const selectedTime = flatpickr(refs.input, options);
 let timerId = null;
+let timeDif = 0;
 
 refs.startBtn.addEventListener('click', onStartClick);
 function onStartClick() {
@@ -58,12 +59,17 @@ function onStartClick() {
 
   if (isTimerActivatable && getCurrentUnixDate() < selectedUnixDate) {
     timerId = setInterval(() => {
-      let timeDif = selectedUnixDate - getCurrentUnixDate();
+      timeDif = selectedUnixDate - getCurrentUnixDate();
       updTimerValues(timeDif);
       isTimerActivatable = false;
-    }, 1000);
+      refs.startBtn.disabled = true;
+
+      if (timeDif < 1000) {
+        clearInterval(timerId);
+        isTimerActivatable = true;
+      }
+    }, 500);
   }
-  //   console.log(options.defaultDate.getTime(), selectedUnixDate);
 }
 function updTimerValues(timeDif) {
   refs.seconds.textContent = convertMs(timeDif).seconds;
